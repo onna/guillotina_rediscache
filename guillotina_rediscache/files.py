@@ -4,6 +4,7 @@ from guillotina_rediscache import cache
 
 import aioredis
 import json
+import time
 
 
 class RedisFileDataManager(DBDataManager):
@@ -26,7 +27,10 @@ class RedisFileDataManager(DBDataManager):
                 self._data = json.loads(data)
 
     async def start(self):
+        self.protect()
+
         self._data.clear()
+        self._data['last_activity'] = time.time()
         if self._loaded:
             await self.save()
 
@@ -58,4 +62,4 @@ class RedisFileDataManager(DBDataManager):
         # and clear the cache key
         redis = await self.get_redis()
         key = await self.get_key()
-        await redis.expire(key)
+        await redis.delete(key)
